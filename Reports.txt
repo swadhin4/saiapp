@@ -1,0 +1,134 @@
+
+Order Number - YYYY-MM-00001
+Challan Number : YYYY-MM-CH00001
+Invoice Number : YYYY-MM-INV-00001
+
+
+Order Report
+                - Today's orders
+                                - Delivered
+                                - Not delivered
+                - Date range
+Sales Report 
+                - Today's sales
+                - Date range
+                - Product specific with date range
+                - Agent specific with date range
+Stock Report
+                - Today's stock
+                                -Warehouse specific
+                                -Product/grade specific
+                                
+Collection Report
+                - Today's Follow-ups
+                - Tomorrow's follow-ups
+                - Today's collections
+                - Date range
+                - Total credit 
+                                - Customer specific
+                                - Collection agent specific
+                                - All
+------------------------------------------------------------
+
+
+Collection Report
+
+========================================================================================================================
+Order Report
+                - Daily
+                - Weekly
+                - Monthly
+                - Date range
+Fields - Order No., Order Date, Order amount, Refered By, Collection Agent, Name, Mobile, Order Status, Payment Status
+
+
+SELECT ob.order_id, ob.order_number, ob.created_at, ob.order_amount,
+CONCAT(cstmr.first_name,' ', cstmr.last_name) as customername, cstmr.mobile , 
+ob.order_status, ob.payment_status, ob.order_agent as referedBy, ob.collection_agent 
+as collectionAgent FROM saiapp_db.order_booking ob, saiapp_db.customer cstmr
+where ob.customer_id = cstmr.customer_id 
+and ob.created_at >= CAST('2017-04-01' AS DATE)
+AND ob.created_at <= CAST('2017-04-05' AS DATE);
+
+
+
+
+
+
+
+
+========================================================================================================================
+Sales Report
+                - Today's sales
+                - Last week sales
+                - Last month sales
+                - Date range( Max 6 Months )
+Fields - 
+                Product Name Total amount
+                                Vendor Name   Total amount
+                                                Product specific
+                                                                Grade Name, Total no. of Orders, Total amount(For this garde only)
+                                                Agent SPecific
+                                                                Agent Name, Agent mobile no., Total no. of Orders, Total amount, 
+                                                
+========================================================================================================================
+Stock Report
+                Warehouse specific
+                                Product Name
+                                                Vendor Name
+                                                                Grade Name, Warehouse name1, Warehouse name2, Warehouse name3, Total Qty
+========================================================================================================================
+
+
+
+Follow Ups against Customer's Payment - Admin Screen
+---------------------------------------
+View Follow Ups  beside Pending - Home screen
+
+
+Follow for Order Number / Customer Name | Next Payment Due Date : 09-04-2017
+
+Visit Date, Collection amount, Payment type, Remarks
+-----------------------------------------------------
+
+By Collection Agent, By Order Number (Pending)
+-------------------
+Dropdown Agent Names
+
+Today's Follow Ups     , Follow ups by Date  - Enter Future Date
+------------------------------------------------------------------
+
+CollectionAgent Name, Mobile number, 
+  Customer Name, Customer Mobile, Due amount
+---------------------------------------------------------------------------------
+
+select a.payment_details_id,au.employee_id,ob.order_number, CONCAT(e.first_name,' ',e.last_name) as "collection_agent",
+e.mobile as "agent_contact",
+CONCAT(c.first_name,' ',c.last_name) as "customer_name", 
+c.mobile, 
+a.next_pmt_due_date, 
+a.amount_due 
+from customer as c,
+(select * from employee) as e,
+(select * from application_users) as au,
+(select *  from order_booking) as ob,
+(select * from order_payment_details ) as a,
+(select order_id,max(next_pmt_due_date) as max_due_date from order_payment_details where next_pmt_due_date is not null group by order_id) as b
+where a.order_id=b.order_id
+and c.customer_id = ob.customer_id
+and ob.order_id = b.order_id
+and au.user_id = ob.collection_agent
+and au.employee_id = e.employee_id
+and a.next_pmt_due_date=b.max_due_date
+and date_format(a.next_pmt_due_date,'%Y-%m-%d')=CURDATE()
+
+
+
+Order Creation - Saving Delivery Address
+------------------------------------------
+Display list of existing delivery address for customer after search.
+If the delivery will be done in existing address, then just select the address from the list
+Else if the deliver will be done in new address, 
+the enter new delivery address for the same customer.
+
+
